@@ -19,9 +19,8 @@ public class StopWatch {
 		DF_TWO_DECIMAL.setRoundingMode(RoundingMode.DOWN);
 	}
 	
-	
 	/**
-	 *  Start the timer for lap.
+	 *  Start the timer, Laps will be reset
 	 * 
 	 */
 	public void startTimer() {

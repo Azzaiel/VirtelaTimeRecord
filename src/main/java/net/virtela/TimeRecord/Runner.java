@@ -19,7 +19,5 @@ public class Runner {
 		System.out.println(stopWatch.getElapsedTime());
 		
 	}
-	
-
 
 }

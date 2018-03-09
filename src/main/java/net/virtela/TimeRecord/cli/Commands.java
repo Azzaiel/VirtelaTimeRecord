@@ -20,7 +20,7 @@ import net.virtela.TimeRecord.service.TimeRecordService;
 @ShellComponent
 public class Commands {
 	
-	private static final String REGEX_DATE_FORMAT = "^([0-2][0-9]||3[0-1])/(0[0-9]||1[0-2])/([0-9][0-9])?[0-9][0-9][0-9][0-9]$";
+	private static final String REGEX_DATE_FORMAT = "([0-9]{2})\\\\([0-9]{2})\\\\([0-9]{4})";
 	
 	private static final String DEFAULT_DATE = "01/01/1900";
 	

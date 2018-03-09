@@ -10,6 +10,19 @@ public class EmployeeTimeRecord {
 	private Date timeIn;
 	private Date timeOut;
 
+	public EmployeeTimeRecord() {
+		super();
+	}
+
+	public EmployeeTimeRecord(Long employeeCode, String emloyeeName, Date date, Date timeIn, Date timeOut) {
+		super();
+		this.employeeCode = employeeCode;
+		this.emloyeeName = emloyeeName;
+		this.date = date;
+		this.timeIn = timeIn;
+		this.timeOut = timeOut;
+	}
+
 	public Long getEmployeeCode() {
 		return employeeCode;
 	}

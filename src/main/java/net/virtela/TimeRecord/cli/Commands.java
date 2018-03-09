@@ -56,12 +56,13 @@ public class Commands {
 		
 		logger.info("Geting the list of Employee Record...");
 		final List<EmployeeTimeRecord> empTimeRecordList = this.service.getEmplyeeTimeRecordListByDate(date);
-		logger.info("Found " + empTimeRecordList.size() + " Employee time records. Duration: " + stopWatch.getLapElapsedTime());
+		logger.info("Found " + empTimeRecordList.size() + " Employee time records.Duration: " + stopWatch.getLapElapsedTime());
 		
+		logger.info("Generating Excel Time Record File...");
 		//TODO: Genernate Excell
+		logger.info("Completed the Excel Time Record File.Duration: " + stopWatch.getLapElapsedTime());
 		
 		//TODO: Mov Excel to FTP DIR
-		
 		
 		logger.info("Done Generating Time Record Report!! Total time spent: " + stopWatch.getElapsedTime());
     }

@@ -40,6 +40,13 @@ public class CommonExcelExporter {
 			return this; 
 		}
 		
+		/**
+		 * This Class assumes that the path given for this property is an Excel file.
+		 * The excel file must if an .xlsx
+		 * 
+		 * @param templatePath file path to the excel template
+		 * 
+		 */
 		public Builder templatePath(String templatePath) {
 			this.templatePath = templatePath;
 			return this; 
@@ -66,6 +73,11 @@ public class CommonExcelExporter {
 	
 	private Workbook workbook;
 	
+	/**
+	 *  Create the Excel File using the local properties of the class.
+	 *  <p>
+	 *  This exporter assumes the an .xlsx file is the given template.
+	 */
 	public void generateExcelFile() {
 		try {
 		

@@ -15,6 +15,7 @@ import org.springframework.shell.standard.ShellOption;
 
 import net.virtela.TimeRecord.model.EmployeeTimeRecord;
 import net.virtela.TimeRecord.service.TimeRecordService;
+import net.virtela.TimeRecord.utils.StopWatch;
 
 
 @ShellComponent
@@ -50,9 +51,19 @@ public class Commands {
 			logger.info("Generating report for " + date);
 		}
 		
+		final StopWatch stopWatch = new StopWatch();
+		stopWatch.startTimer();
+		
+		logger.info("Geting the list of Employee Record...");
 		final List<EmployeeTimeRecord> empTimeRecordList = this.service.getEmplyeeTimeRecordListByDate(date);
+		logger.info("Found " + empTimeRecordList.size() + " Employee time records. Duration: " + stopWatch.getLapElapsedTime());
+		
 		//TODO: Genernate Excell
+		
 		//TODO: Mov Excel to FTP DIR
+		
+		
+		logger.info("Done Generating Time Record Report!! Total time spent: " + stopWatch.getElapsedTime());
     }
 
 }

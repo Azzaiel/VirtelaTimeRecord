@@ -1,24 +1,33 @@
 package net.virtela.TimeRecord.utils;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommonExcelExporter {
 	
 	private String templatePath;
 	private String sheetName;
 	private Integer startRowIndex;
+	private Integer cellTemplateRowIndex;
 	private List<Object[]> dataList;
+	
+	private Workbook workbook;
+	private List<CellStyle> templateCellStyleList;
+	
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private CommonExcelExporter() {
 		super();
@@ -30,7 +39,24 @@ public class CommonExcelExporter {
 		private String templatePath;
 		private String sheetName;
 		private Integer startRowIndex;
+		private Integer cellTemplateRowIndex;
 		private List<Object[]> dataList;
+		
+		/**
+		 *  This field is to define the row format of the excel file.
+		 *  the supplied index must be a row in the template that has
+		 *  the formating for the row.
+		 *  <p>
+		 *  <b>Note:</b> Ensure that dummy data is entered in the template cell.
+		 *  this ensures that the cell is created when poi reads it.
+		 *  
+		 * @param cellTemplateRowIndex must be an {@link Integer} greater than 0
+		 * @return
+		 */
+		public Builder cellTemplateRowIndex(Integer cellTemplateRowIndex) {
+			this.cellTemplateRowIndex = cellTemplateRowIndex;
+			return this; 
+		}
 		
 		public Builder dataList(List<Object[]> dataList) {
 			this.dataList = dataList;
@@ -54,7 +80,7 @@ public class CommonExcelExporter {
 			return this; 
 		}
 		
-		public Builder startRowIndex(int index) {
+		public Builder startRowIndex(Integer index) {
 			this.startRowIndex = index;
 			return this; 
 		}
@@ -70,10 +96,9 @@ public class CommonExcelExporter {
 		this.templatePath = builder.templatePath;
 		this.sheetName = builder.sheetName;
 		this.startRowIndex = builder.startRowIndex;
+		this.cellTemplateRowIndex = builder.cellTemplateRowIndex;
 		this.dataList = builder.dataList;
 	}
-	
-	private Workbook workbook;
 	
 	/**
 	 *  Create the Excel File using the local properties of the class.
@@ -83,11 +108,15 @@ public class CommonExcelExporter {
 	public void generateExcelFile() {
 		try {
 		
-			this.workbook = new XSSFWorkbook(new FileInputStream(this.templatePath));
+			this.workbook = new XSSFWorkbook(new FileInputStream(this.templatePath));	
 			final Sheet sheet = this.workbook.getSheet(this.sheetName);
 			
-			int rowIndex = this.startRowIndex;
+			if (this.cellTemplateRowIndex != null && this.cellTemplateRowIndex > 0) {
+				logger.debug("Initializing Tempalte Cell Stype List");
+				this.initializeTemnpalteCellStyle(sheet);
+			}
 			
+			int rowIndex = this.startRowIndex - 1;
 			for (Object[] objArr : this.dataList) {
 				final Row row = this.getRowInstance(sheet, rowIndex);
 				this.setRowValue(sheet, row, objArr);
@@ -99,14 +128,43 @@ public class CommonExcelExporter {
 		}
 	}
 	
+	private void initializeTemnpalteCellStyle(Sheet sheet) {
+		
+		int fieldLeght = 0;
+		
+		if (this.dataList != null 
+			&& this.dataList.size() > 0
+			&& this.dataList.get(0) != null
+			&& this.dataList.get(0).length > 0) {
+			
+			fieldLeght = this.dataList.get(0).length;
+		}
+		
+		logger.debug("Cell Template Field size: " + fieldLeght);
+		
+		if (fieldLeght > 0) {
+			this.templateCellStyleList = new ArrayList<>();
+			final Row cellTemplateRow = this.getRowInstance(sheet, this.cellTemplateRowIndex - 1);
+			for (int cellIndex = 0; cellIndex < fieldLeght; cellIndex++) {
+				this.templateCellStyleList.add(this.getCellInstance(cellTemplateRow, cellIndex).getCellStyle());
+			}
+		}
+		
+	}
+
 	private void setRowValue(Sheet sheet, Row row, Object[] objArr) {	
 		if (objArr == null || objArr.length == 0) {
 			return;
 		}
-		int cellIndex = 1;
+		int cellIndex = 0;
 		for (Object obj : objArr) {
 			final Cell cell = getCellInstance(row, cellIndex);
 			this.identfyAndSetCellValue(cell, obj);
+			
+			if (this.templateCellStyleList != null) {
+				cell.setCellStyle(this.templateCellStyleList.get(cellIndex));
+			}
+			
 			cellIndex++;
 		}
 	}

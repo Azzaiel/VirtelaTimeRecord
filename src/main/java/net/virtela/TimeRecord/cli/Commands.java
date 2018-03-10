@@ -35,15 +35,17 @@ public class Commands {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@Value("${report.daily.time.record.template}")
-	private String dailyTimeRecordTemplate;
+	private String timeRecordTemplate;
 	@Value("${report.daily.time.record.excel.sheet.name}")
-	private String dailyTimeRecordExcelSheetName;
+	private String timeRecordExcelSheetName;
 	@Value("${report.daily.time.record.excel.start.row.index}")
-	private int dailyTimeRecordExcelStartIndex;
+	private int timeRecordStartRowIndex;
+	@Value("${report.daily.time.record.excel.cell.tempalte.row}")
+	private int timeRecordCellTemplateIndex;
 	@Value("${report.daily.time.record.file.name.suffix}")
-	private String dailyTimeRecordFileNameSuffix;
+	private String timeRecordFileNameSuffix;
 	@Value("${report.daily.time.record.save.dir}")
-	private String dailyTimeRecordFileSaveDir;
+	private String timeRecordSaveDir;
 	
 	@Autowired
 	private TimeRecordService service;
@@ -80,25 +82,24 @@ public class Commands {
 		final List<EmployeeTimeRecord> empTimeRecordList = this.service.getEmplyeeTimeRecordListByDate(date);
 		logger.info("Found " + empTimeRecordList.size() + " Employee time records.Duration: " + stopWatch.getLapElapsedTime());
 		
-		
 		logger.info("Generating Excel Time Record File...");
 		final List<Object[]> dataArrList = empTimeRecordList.stream().map(rec -> rec.toObjectArr())
 																	 .collect(Collectors.toList());
 																	
 		final CommonExcelExporter excelExporter = new CommonExcelExporter.Builder()
-															             .templatePath(dailyTimeRecordTemplate)
-															             .sheetName(dailyTimeRecordExcelSheetName)
-															             .startRowIndex(dailyTimeRecordExcelStartIndex)
+															             .templatePath(timeRecordTemplate)
+															             .sheetName(timeRecordExcelSheetName)
+															             .startRowIndex(timeRecordStartRowIndex)
+															             .cellTemplateRowIndex(timeRecordCellTemplateIndex)
 															             .dataList(dataArrList)
 															             .build();
 		excelExporter.generateExcelFile();
 		logger.info("Completed the Excel Time Record File.Duration: " + stopWatch.getLapElapsedTime());
 		
-		
 		logger.info("Saving the Excel Time Record...");
 		final StringBuilder reportFilePath = new StringBuilder();
-		reportFilePath.append(dailyTimeRecordFileSaveDir).append(Constants.PATH_SEPARATOR);
-		reportFilePath.append(dailyTimeRecordFileNameSuffix);
+		reportFilePath.append(timeRecordSaveDir).append(Constants.PATH_SEPARATOR);
+		reportFilePath.append(timeRecordFileNameSuffix);
 		reportFilePath.append(StringUtils.replace(date, Constants.SLASH, Constants.EMPTY_STRING));
 		reportFilePath.append(Constants.DOT).append(Constants.FILE_EXTENSION_XLSX);
 		Files.deleteIfExists(Paths.get(reportFilePath.toString()));

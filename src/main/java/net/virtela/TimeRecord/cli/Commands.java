@@ -3,6 +3,7 @@ package net.virtela.TimeRecord.cli;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public class Commands {
 	private void generateDailyTitmeRecord() {
 		logger.info("Scheduled Today's Time Record generator triggered!");
 		try {
-			this.genTimeRecord(null);
+			this.genTimeRecord(DEFAULT_DATE);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -71,7 +72,7 @@ public class Commands {
 		
 		if (StringUtils.isEmpty(date) || Objects.equals(DEFAULT_DATE, date)) {
 			logger.info("Generating report for today");
-			date = null;
+			date = TimeRecordService.STR_DATE_FORMAT.format(new Date());
 		} else {
 			logger.info("Generating report for " + date);
 		}

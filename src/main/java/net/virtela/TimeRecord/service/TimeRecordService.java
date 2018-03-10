@@ -27,7 +27,7 @@ public class TimeRecordService {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	private static final DateFormat STR_DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
+	public static final DateFormat STR_DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
 	
 	/**
 	 * 

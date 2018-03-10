@@ -71,6 +71,7 @@ public class Commands {
 		
 		if (StringUtils.isEmpty(date) || Objects.equals(DEFAULT_DATE, date)) {
 			logger.info("Generating report for today");
+			date = null;
 		} else {
 			logger.info("Generating report for " + date);
 		}

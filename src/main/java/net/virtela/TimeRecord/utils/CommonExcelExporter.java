@@ -1,6 +1,8 @@
 package net.virtela.TimeRecord.utils;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -139,6 +141,17 @@ public class CommonExcelExporter {
 			return row;
 		} else {
 			return sheet.createRow(rowIndex);
+		}
+	}
+
+	public void save(String savePath) {
+		if (this.workbook == null) {
+			return;
+		}
+		try (final FileOutputStream fileOut = new FileOutputStream(savePath)) {
+			this.workbook.write(fileOut);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 

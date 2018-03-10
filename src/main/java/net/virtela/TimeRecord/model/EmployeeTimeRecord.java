@@ -63,4 +63,14 @@ public class EmployeeTimeRecord {
 		this.timeOut = timeOut;
 	}
 
+	public Object[] toObjectArr() {
+		final Object[] objArr = new Object[5];
+		objArr[0] = this.employeeCode;
+		objArr[1] = this.getEmloyeeName();
+		objArr[2] = this.date;
+		objArr[3] = this.timeIn;
+		objArr[4] = this.timeOut;
+		return objArr;
+	}
+
 }

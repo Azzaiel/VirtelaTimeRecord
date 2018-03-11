@@ -25,8 +25,8 @@ import net.virtela.TimeRecord.utils.CommonExcelExporter;
 import net.virtela.TimeRecord.utils.Constants;
 import net.virtela.TimeRecord.utils.StopWatch;
 
-
-public class Commands {
+@ShellComponent("Time Record commands for report generation and maitenace")
+public class MainCommands {
 	
 	private static final String REGEX_DATE_FORMAT = "^(0[0-9]||1[0-2])/([0-2][0-9]||3[0-1])/([0-9][0-9])?[0-9][0-9]$";
 	
@@ -54,14 +54,14 @@ public class Commands {
 	private void generateDailyTitmeRecord() {
 		logger.info("Scheduled Today's Time Record generator triggered!");
 		try {
-			this.genTimeRecord(DEFAULT_DATE);
+			this.generate(DEFAULT_DATE);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	@ShellMethod("Generate Time Record per Day into an excel file and save it to a directory.")
-    public void genTimeRecord(
+    public void generate(
     							@ShellOption (value= {"-dt", "-date"},
     							              help = "Date to generate the report.If empty report will be generated for today",
     							              defaultValue = DEFAULT_DATE) 

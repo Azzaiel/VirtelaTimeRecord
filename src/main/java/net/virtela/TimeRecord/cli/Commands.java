@@ -26,7 +26,6 @@ import net.virtela.TimeRecord.utils.Constants;
 import net.virtela.TimeRecord.utils.StopWatch;
 
 
-@ShellComponent
 public class Commands {
 	
 	private static final String REGEX_DATE_FORMAT = "^(0[0-9]||1[0-2])/([0-2][0-9]||3[0-1])/([0-9][0-9])?[0-9][0-9]$";
@@ -112,5 +111,10 @@ public class Commands {
 		
 		logger.info("Done Generating Time Record Report!! Total time spent: " + stopWatch.getElapsedTime());
     }
+	
+	@ShellMethod("Archive time record reports except for the current day report")
+	public void archive() {
+		
+	}
 
 }

@@ -1,6 +1,6 @@
 <configuration>
 
-	<property name="PATTERN_UI_DISPLAY" value="%d{yyyy-MM-dd HH:mm:ss} - %msg%n" />
+	<property name="PATTERN_UI_DISPLAY" value="%d{yyyy-MM-dd HH:mm:ss} %highlight(%-5level) - %msg%n" />
 	<property name="PATTERN_APP_LOG"  value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" />
 	
 	<property name="LOG_FILE_MAX_SIZE"  value="30MB" />

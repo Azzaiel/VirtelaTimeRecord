@@ -61,7 +61,7 @@ public class Commands {
 		}
 	}
 	
-	@ShellMethod("Generate Time Record per Day.")
+	@ShellMethod("Generate Time Record per Day into an excel file and save it to a directory.")
     public void genTimeRecord(
     							@ShellOption (value= {"-dt", "-date"},
     							              help = "Date to generate the report.If empty report will be generated for today",

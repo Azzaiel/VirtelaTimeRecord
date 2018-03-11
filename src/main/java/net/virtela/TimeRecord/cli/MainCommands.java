@@ -1,11 +1,12 @@
 package net.virtela.TimeRecord.cli;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
@@ -15,15 +16,12 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.Pattern;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ansi.AnsiColor;
-import org.springframework.boot.ansi.AnsiOutput;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -40,6 +38,8 @@ public class MainCommands {
 	private static final String REGEX_DATE_FORMAT = "^(0[0-9]||1[0-2])/([0-2][0-9]||3[0-1])/([0-9][0-9])?[0-9][0-9]$";
 
 	private static final String DEFAULT_DATE = "01/01/1900";
+	
+	private final static PathMatcher EXCEL_MATCHER = FileSystems.getDefault().getPathMatcher("glob:*.xlsx");
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -57,22 +57,38 @@ public class MainCommands {
 	private String timeRecordSaveDir;
 
 	private Path savePath;
+	private Path archivesPath;
 
 	@Autowired
 	private TimeRecordService service;
 	
 	@PostConstruct
-	public void PostConstrct() throws URISyntaxException, RuntimeException {
+	public void PostConstrct() throws URISyntaxException, RuntimeException, IOException {
 		this.savePath = Paths.get(new URI("file:" + timeRecordSaveDir));	
-		logger.info("Verifying save path: " + this.savePath.toString() + "...");
+		logger.info("Verifying save path: [" + this.savePath.toString() + "]...");
 		if (Files.exists(this.savePath) == false) {
 			this.exitOnStartUp("Save path does not exist!!");
 		} else if (Files.isDirectory(this.savePath) == false) {
 			this.exitOnStartUp("Save path is not a Direcoty");
 		} else if (Files.isWritable(this.savePath) == false) {
-			this.exitOnStartUp("Save path is Accssible");
+			this.exitOnStartUp("Save path is Accessible");
 		}
-		logger.info("Save path Verfied, Ready to start the application!!");
+		
+		this.archivesPath = Paths.get(new URI("file:" + timeRecordSaveDir + "/archives"));
+		
+		logger.info("Verifying archives path: [" + this.archivesPath.toString() + "]...");
+		
+		if (Files.exists(this.archivesPath)) {
+			if (Files.isWritable(this.archivesPath) == false) {
+				this.exitOnStartUp("Archives path is Accessible");
+			}
+		} else {
+			logger.info("Creating archives directory...");
+			Files.createDirectory(this.archivesPath);
+			logger.info("archives directory crated [" + this.archivesPath + "]");
+		}
+		
+		logger.info("Save and archives path Verfied, Ready to start the application!!");
 	}
 	
 	private void exitOnStartUp(String errorMsg) throws RuntimeException {
@@ -135,11 +151,17 @@ public class MainCommands {
 		logger.info("Done Generating Time Record Report!! Total time spent: " + stopWatch.getElapsedTime());
 	}
 
-	@ShellMethod("Archive time record reports except for the current day report")
+	@ShellMethod("Archive time record reports")
 	public void archive() throws IOException, URISyntaxException {
-		Files.list(this.savePath).forEach(path -> {
-			System.out.println(path.toString());
-		});
+		final List<Path> fileList = Files.list(this.savePath)
+				                         .filter(path-> EXCEL_MATCHER.matches(path.getFileName()))
+				                         .collect(Collectors.toList());
+		if (CollectionUtils.isNotEmpty(fileList)) {
+			//TODO: Create temp folder
+			//TODO: Move all files to temp folder
+			//TODO: Compress temp folder
+			//TODO: Move temp folder to Archives folder
+		}
 	}
-
+	
 }

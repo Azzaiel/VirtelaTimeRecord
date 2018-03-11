@@ -18,7 +18,7 @@ public class TimeRecordDao {
 		
 		final Random random = new Random();
 		int Low = 250;
-		int High = 700;
+		int High = 1500;
 		
 		for (long index = 101; index < random.nextInt(High-Low) + Low; index++) {
 			recordList.add(new EmployeeTimeRecord( index,

@@ -1,7 +1,6 @@
  package net.virtela.TimeRecord.cli;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -27,10 +26,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
+import org.springframework.util.FileSystemUtils;
 
 import net.virtela.TimeRecord.model.EmployeeTimeRecord;
 import net.virtela.TimeRecord.service.TimeRecordService;
 import net.virtela.TimeRecord.utils.CommonExcelExporter;
+import net.virtela.TimeRecord.utils.ZipFileHelper;
 import net.virtela.TimeRecord.utils.Constants;
 import net.virtela.TimeRecord.utils.StopWatch;
 
@@ -103,7 +104,6 @@ public class MainCommands {
 
 	// @Scheduled(fixedRate = 5000)
 	private void generateDailyTitmeRecord() {
-		logger.info("Scheduled Today's Time Record generator triggered!");
 		try {
 			this.generate(DEFAULT_DATE);
 		} catch (IOException e) {
@@ -125,47 +125,44 @@ public class MainCommands {
 
 		final StopWatch stopWatch = new StopWatch();
 		stopWatch.startTimer();
-
 		logger.info("Geting the list of Employee Record...");
 		final List<EmployeeTimeRecord> empTimeRecordList = this.service.getEmplyeeTimeRecordListByDate(date);
-		logger.info("Found " + empTimeRecordList.size() + " Employee time records.Duration: "
-				+ stopWatch.getLapElapsedTime());
+		logger.info("Found " + empTimeRecordList.size() + " Employee time records.Duration: " + stopWatch.getLapElapsedTime());
 
 		logger.info("Generating Excel Time Record File...");
 		final List<Object[]> dataArrList = empTimeRecordList.stream().map(rec -> rec.toObjectArr())
-				.collect(Collectors.toList());
-
+																	 .collect(Collectors.toList());
 		final CommonExcelExporter excelExporter = new CommonExcelExporter.Builder().templatePath(timeRecordTemplate)
-				.sheetName(timeRecordExcelSheetName).startRowIndex(timeRecordStartRowIndex)
-				.cellTemplateRowIndex(timeRecordCellTemplateIndex).dataList(dataArrList).build();
+																				   .sheetName(timeRecordExcelSheetName)
+																				   .startRowIndex(timeRecordStartRowIndex)
+																				   .cellTemplateRowIndex(timeRecordCellTemplateIndex)
+																				   .dataList(dataArrList)
+																				   .build();
 		excelExporter.generateExcelFile();
 		logger.info("Completed the Excel Time Record File.Duration: " + stopWatch.getLapElapsedTime());
+		
 
 		logger.info("Saving the Excel Time Record...");
-		final StringBuilder reportFilePath = new StringBuilder();
-		reportFilePath.append(timeRecordSaveDir).append(Constants.PATH_SEPARATOR);
-		reportFilePath.append(timeRecordFileNameSuffix);
-		reportFilePath.append(StringUtils.replace(date, Constants.SLASH, Constants.EMPTY_STRING));
-		reportFilePath.append(Constants.DOT).append(Constants.FILE_EXTENSION_XLSX);
-		Files.deleteIfExists(Paths.get(reportFilePath.toString()));
-		excelExporter.save(reportFilePath.toString());
+		final Path dailyReportPath = generateDailyReportPath(date);
+		Files.deleteIfExists(dailyReportPath);
+		excelExporter.save(dailyReportPath.toString());
 		logger.info("Done Saving saving the Report. Duration: " + stopWatch.getLapElapsedTime());
-		logger.info("File is saved in: " + reportFilePath.toString());
+		logger.info("File is saved in: " + dailyReportPath.toString());
 
 		logger.info("Done Generating Time Record Report!! Total time spent: " + stopWatch.getElapsedTime());
 	}
 
-	@ShellMethod("Archive time record reports")
+	@ShellMethod("Archive time record reports except for the current daily time record. Will generate daily time record after archive.")
 	public void archive() throws IOException, URISyntaxException {
+		Files.deleteIfExists(this.generateDailyReportPath(TimeRecordService.STR_DATE_FORMAT.format(new Date())));
 		final List<Path> fileList = Files.list(this.savePath)
 				                         .filter(path-> EXCEL_MATCHER.matches(path.getFileName()))
 				                         .collect(Collectors.toList());
 		if (CollectionUtils.isNotEmpty(fileList)) {
-			//TODO: Create temp folder
 			final StopWatch stopWatch = new StopWatch();
 			
 			stopWatch.startTimer();
-			logger.info("Moving " + fileList.size() + " file(s) to temp direcotry");
+			logger.info("Moving " + fileList.size() + " file(s) to tempprary archive direcotry...");
 			final StringBuilder tempDir = new StringBuilder();
 			tempDir.append(timeRecordSaveDir)
 			       .append(Constants.PATH_SEPARATOR)
@@ -178,15 +175,33 @@ public class MainCommands {
 				try {
 					Files.move(filePath, tempDirPath.resolve(filePath.getFileName()));
 				} catch (IOException e) {
-//					System.out.println("err");
 					e.printStackTrace();
 				}
 			});
 			logger.info("Done moving the files. Duration: " + stopWatch.getLapElapsedTime());
-
-			//TODO: Compress temp folder
-			//TODO: Move temp folder to Archives folder
+			
+			
+			logger.info("Compressing temp archive directory...");
+			final Path zipDirPath = ZipFileHelper.zipFile(tempDirPath);
+			Files.move(zipDirPath, this.archivesPath.resolve(zipDirPath.getFileName()));
+			FileSystemUtils.deleteRecursively(tempDirPath);
+			logger.info("Done Compressing temp archive directory. Duration: " + stopWatch.getLapElapsedTime());
+			
+			logger.info("Done Archiving the data!! Total time spent: " + stopWatch.getElapsedTime());
+				
+		} else {
+			logger.info("No time record report found to archive!!");
 		}
+		this.generateDailyTitmeRecord();
+	}
+	
+	private Path generateDailyReportPath(String date) {
+		final StringBuilder reportFilePath = new StringBuilder();
+		reportFilePath.append(timeRecordSaveDir).append(Constants.PATH_SEPARATOR)
+				      .append(timeRecordFileNameSuffix)
+				      .append(StringUtils.replace(date, Constants.SLASH, Constants.EMPTY_STRING))
+				      .append(Constants.DOT).append(Constants.FILE_EXTENSION_XLSX);
+		return Paths.get(reportFilePath.toString());
 	}
 	
 }

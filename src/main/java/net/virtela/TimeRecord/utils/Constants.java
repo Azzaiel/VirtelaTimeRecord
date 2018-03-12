@@ -13,6 +13,7 @@ public class Constants {
 	public static final String FILE_EXTENSION_XLSX = "xlsx";
 	
 	public static final String PATH_TYPE_FILE = "file:";
+	public static final Object FILE_TYPE_ZIP = "zip";
 	
 
 }

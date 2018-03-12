@@ -68,7 +68,7 @@ public class MainCommands {
 	
 	@PostConstruct
 	public void PostConstrct() throws URISyntaxException, RuntimeException, IOException {
-		this.savePath = Paths.get(new URI(Constants.PATH_TYPE_FILE + timeRecordSaveDir));	
+		this.savePath = Paths.get(timeRecordSaveDir);	
 		logger.info("Verifying save path: [" + this.savePath.toString() + "]...");
 		if (Files.exists(this.savePath) == false) {
 			this.exitOnStartUp("Save path does not exist!!");

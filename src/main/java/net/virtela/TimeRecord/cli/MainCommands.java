@@ -1,4 +1,4 @@
-package net.virtela.TimeRecord.cli;
+ package net.virtela.TimeRecord.cli;
 
 import java.io.IOException;
 import java.net.URI;
@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +41,8 @@ public class MainCommands {
 
 	private static final String DEFAULT_DATE = "01/01/1900";
 	
+	public static final DateFormat DF_DAY_STAMP = new SimpleDateFormat("MMddyyyy");
+	
 	private final static PathMatcher EXCEL_MATCHER = FileSystems.getDefault().getPathMatcher("glob:*.xlsx");
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -64,7 +68,7 @@ public class MainCommands {
 	
 	@PostConstruct
 	public void PostConstrct() throws URISyntaxException, RuntimeException, IOException {
-		this.savePath = Paths.get(new URI("file:" + timeRecordSaveDir));	
+		this.savePath = Paths.get(new URI(Constants.PATH_TYPE_FILE + timeRecordSaveDir));	
 		logger.info("Verifying save path: [" + this.savePath.toString() + "]...");
 		if (Files.exists(this.savePath) == false) {
 			this.exitOnStartUp("Save path does not exist!!");
@@ -74,7 +78,7 @@ public class MainCommands {
 			this.exitOnStartUp("Save path is Accessible");
 		}
 		
-		this.archivesPath = Paths.get(new URI("file:" + timeRecordSaveDir + "/archives"));
+		this.archivesPath = Paths.get(new URI(Constants.PATH_TYPE_FILE + timeRecordSaveDir + "/archives"));
 		
 		logger.info("Verifying archives path: [" + this.archivesPath.toString() + "]...");
 		
@@ -158,7 +162,28 @@ public class MainCommands {
 				                         .collect(Collectors.toList());
 		if (CollectionUtils.isNotEmpty(fileList)) {
 			//TODO: Create temp folder
-			//TODO: Move all files to temp folder
+			final StopWatch stopWatch = new StopWatch();
+			
+			stopWatch.startTimer();
+			logger.info("Moving " + fileList.size() + " file(s) to temp direcotry");
+			final StringBuilder tempDir = new StringBuilder();
+			tempDir.append(timeRecordSaveDir)
+			       .append(Constants.PATH_SEPARATOR)
+			       .append(DF_DAY_STAMP.format(new Date()))
+				   .append(Constants.UNDERSCORE)
+			       .append(System.currentTimeMillis());
+			final Path tempDirPath = Paths.get(tempDir.toString());
+			Files.createDirectories(tempDirPath);
+			fileList.forEach(filePath->{
+				try {
+					Files.move(filePath, tempDirPath.resolve(filePath.getFileName()));
+				} catch (IOException e) {
+//					System.out.println("err");
+					e.printStackTrace();
+				}
+			});
+			logger.info("Done moving the files. Duration: " + stopWatch.getLapElapsedTime());
+
 			//TODO: Compress temp folder
 			//TODO: Move temp folder to Archives folder
 		}

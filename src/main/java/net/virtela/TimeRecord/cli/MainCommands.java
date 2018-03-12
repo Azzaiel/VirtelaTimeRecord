@@ -78,7 +78,7 @@ public class MainCommands {
 			this.exitOnStartUp("Save path is Accessible");
 		}
 		
-		this.archivesPath = Paths.get(new URI(Constants.PATH_TYPE_FILE + timeRecordSaveDir + "/archives"));
+		this.archivesPath = Paths.get(timeRecordSaveDir + "/archives");
 		
 		logger.info("Verifying archives path: [" + this.archivesPath.toString() + "]...");
 		
